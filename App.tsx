@@ -1,118 +1,118 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, {useEffect, useState} from 'react';
+import {Platform, Text, View} from 'react-native';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import QRCodeScanner from 'react-native-qrcode-scanner';
+import QrCodeMask from 'react-native-qrcode-mask';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import {PERMISSIONS, request} from 'react-native-permissions';
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+export const App = () => {
+  const [hasPermission, setHasPermission] = useState(false);
+  const [barcodes, setBarcodes] = useState('');
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+  // const {location} = useSelector(state => state.auth);
+  console.log(barcodes, 'asmlkdsdkjlfdkljsdkjsfl');
+  useEffect(() => {
+    (async () => {
+      request(
+        Platform.OS === 'ios'
+          ? PERMISSIONS.IOS.CAMERA
+          : PERMISSIONS.ANDROID.CAMERA,
+      ).then(result => {
+        setHasPermission(result === 'granted');
+      });
+    })();
+    // if (location === undefined) {
+    //   Geolocation.getCurrentPosition(
+    //     position => {
+    //       const {latitude, longitude} = position.coords;
+    //       dispatch(addLocation({latitude, longitude}));
+    //     },
+    //     error => {
+    //       alert.showCustomDialog(strings.dialogError, error.message);
+    //     },
+    //     {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+    //   );
+    // }
+    return () => {};
+  }, []);
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  // useEffect(() => {
+  //   status?.productsQrProcess === 'success'
+  //     ? alert.showCustomDialog(strings.dialogInfo, message?.productsQrProcess, [
+  //         {
+  //           text: strings.ok,
+  //           onPress: () => {
+  //             navigation.goBack();
+  //             dispatch(setScanned(false));
+  //             dispatch(resetQr());
+  //           },
+  //         },
+  //       ])
+  //     : status?.productsQrProcess === 'error'
+  //     ? alert.showCustomDialog(
+  //         strings.dialogError,
+  //         message?.productsQrProcess,
+  //         [
+  //           {
+  //             text: strings.ok,
+  //             onPress: () => {
+  //               navigation.goBack();
+  //               dispatch(resetQr());
+  //               dispatch(setScanned(false));
+  //             },
+  //           },
+  //         ],
+  //       )
+  //     : null;
+  // }, [status?.productsQrProcess]);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  // useEffect(() => {
+  //   check();
+  // }, [barcodes]);
+
+  // const check = () => {
+  //   if (barcodes.length > 0 && !scanned) {
+  //     dispatch(setScanned(true));
+  //     const qr = barcodes;
+  //     if (qr !== '') {
+  //       dispatch(productsQrProcess({qr}));
+  //       return null;
+  //     }
+  //   } else {
+  //     dispatch(setScanned(false));
+  //   }
+  // };
+
+  const onSuccess = e => {
+    setBarcodes(e?.data);
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <View style={{flex: 1, backgroundColor: 'black'}}>
+      <View
+        style={{
+          flex: 1,
+          width: '100%',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        {hasPermission ? (
+          <>
+            <QRCodeScanner onRead={onSuccess} />
+            <QrCodeMask
+              // lineColor='green'
+              lineDirection="vertical"
+              height={250}
+              edgeColor="red"
+              topTitle="Qr Code Scanner"
+              bottomTitle="Put the Qr into the box"
+            />
+          </>
+        ) : (
+          <Text>Camera Loading</Text>
+        )}
+      </View>
+    </View>
   );
-}
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
-
-export default App;
+};
